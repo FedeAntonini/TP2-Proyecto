@@ -1,2 +1,7 @@
 # TP2-Proyecto
 Proyecto final TP2
+
+- RUTAS
+- CONTROLLERS
+- ENTRY POINT
+- AUTH MIDDLEWARES
