@@ -34,6 +34,8 @@ const config = {
     DB_HOST: process.env.DB_HOST || null,
     DB_USE_SRV: process.env.DB_USE_SRV === 'true' || false,
     MONGO_URI: buildMongoUri(),
+    JWT_SECRET: process.env.JWT_SECRET || "your-secret-key-change-in-production",
+    JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || "24h",
     EMAIL_USER: process.env.EMAIL_USER || null,
     STRIPE_KEY: process.env.STRIPE_KEY || null
 };
