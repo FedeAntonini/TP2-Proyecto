@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 const config = require("./src/config/config");
 const loginRouter = require("./src/routes/loginRouter");
@@ -5,14 +7,14 @@ const signupRouter = require("./src/routes/signupRouter");
 const MongoStore = require("connect-mongo");
 const flash = require("connect-flash");
 const session = require("express-session");
-const initializePassport = require("./src/config/pasport.config");
+const methodOverride = require("method-override");
+const initializePassport = require("./src/config/passport.config");
 const sessionRouter = require("./src/routes/sessionsRouter");
 const passport = require("passport");
 const app = express();
 const usersRouter = require("./src/routes/usersRouter");
-const STRING_CONNECTION = ``;
 
-const httpServer = app.listen(config.PORT, ()=>{logger.info(`Server running on port ${config.PORT}`)});
+const httpServer = app.listen(config.PORT, ()=>{console.log(`Server running on port ${config.PORT}`)});
 
 //Middlewares
 app.use(express.json());
@@ -27,10 +29,7 @@ app.use(
         resave: true,
         saveUninitialized: true,
         store: MongoStore.create({
-            mongoUrl: STRING_CONNECTION,
-            mongoOptions: {
-                useUnifiedTopology: true,
-            },
+            mongoUrl: config.MONGO_URI,
             ttl: 3600,
         }),
     })

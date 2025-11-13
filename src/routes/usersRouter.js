@@ -61,7 +61,7 @@ usersRouter.get("/profile", async (req,res)=>{
 });
 
 //Post User Fields
-usersRouter.post("/profile", uploadProfile, async (req,res)=>{
+usersRouter.post("/profile", async (req,res)=>{
     if(req.session.user){
         try{
             const {firstname,lastname} = req.body;
