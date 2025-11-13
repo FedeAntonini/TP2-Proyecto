@@ -11,8 +11,13 @@ const methodOverride = require("method-override");
 const initializePassport = require("./src/config/passport.config");
 const sessionRouter = require("./src/routes/sessionsRouter");
 const passport = require("passport");
+const mongoose = require("mongoose");
 const app = express();
 const usersRouter = require("./src/routes/usersRouter");
+
+mongoose.connect(config.MONGO_URI)
+    .then(() => console.log("MongoDB connected successfully"))
+    .catch((err) => console.error("MongoDB connection error:", err));
 
 const httpServer = app.listen(config.PORT, ()=>{console.log(`Server running on port ${config.PORT}`)});
 
