@@ -2,6 +2,8 @@ const express = require("express");
 const usersModel = require("../data/mongo/models/usersModel");
 const cartModel = require("../data/mongo/models/cartsModel");
 const usersRouter = express.Router();
+const { authenticateJWT } = require("../middlewares/auth/jwtAuth");
+
 
 //Get All users
 usersRouter.get("/", async(req,res)=>{
@@ -23,24 +25,45 @@ usersRouter.get("/", async(req,res)=>{
     }
 });
 
-//Get User By ID (View for the admin)
-usersRouter.get("/user/:uid", async(req,res)=>{
-    if(req.session.user.admin){
-        const { uid } = req.params;
-        const userDB = await usersModel.findById(uid,{
-            _id: 1,
-            firstname: 1,
-            lastname: 1,
-            age: 1,
-            email: 1,
-            premium: 1,
-            admin: 1,
-            last_connection: 1
+//Get User By ID, con JWT
+usersRouter.get("/user/:uid", authenticateJWT, async(req,res)=>{
+try {
+    const { uid } = req.params;
+    const loggedUserId = req.user._id.toString();
+
+    if (uid !== loggedUserId) {
+        return res.status(403).json({
+            success: false,
+            error: "Access denied. You can only view your own profile."
         });
-        res.status(200).render("userId.handlebars", {userDB});
-    }else{  
-        req.flash("error", "You don't have access to this section");
-        res.status(401).redirect("/api/products");
+    }
+    const userDB = await usersModel.findById(uid, {
+        _id: 1,
+        firstname: 1,
+        lastname: 1,
+        age: 1,
+        email: 1,
+        premium: 1,
+        admin: 1,
+        last_connection: 1
+    });
+    if (!userDB) {
+        return res.status(404).json({
+            success: false,
+            error: "User not found"
+        });
+    }
+
+    res.status(200).json({
+        success: true,
+        user: userDB
+    });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
     }
 });
 

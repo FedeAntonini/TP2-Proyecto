@@ -15,7 +15,8 @@ const authenticateJWT = async (req, res, next) => {
 
         const decoded = verifyToken(token);
 
-        const user = await usersModel.findById(decoded._id);
+        const userId = decoded._id || decoded.id;
+        const user = await usersModel.findById(userId);
         
         if (!user) {
             return res.status(401).json({
