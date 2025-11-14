@@ -8,9 +8,7 @@ const MongoStore = require("connect-mongo");
 const flash = require("connect-flash");
 const session = require("express-session");
 const methodOverride = require("method-override");
-const initializePassport = require("./src/config/passport.config");
 const sessionRouter = require("./src/routes/sessionsRouter");
-const passport = require("passport");
 const mongoose = require("mongoose");
 const app = express();
 const usersRouter = require("./src/routes/usersRouter");
@@ -25,7 +23,6 @@ const httpServer = app.listen(config.PORT, ()=>{console.log(`Server running on p
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(methodOverride("_method"));
-initializePassport();
 app.use(flash());
 app.use(
     session({
@@ -39,13 +36,11 @@ app.use(
         }),
     })
 );
-app.use(passport.initialize());
-app.use(passport.session());
 app.use("/api/sessions", sessionRouter);
 
 //Routes
 app.get("/", (req,res)=>{
-    res.status(200).redirect("/api/products");
+    res.status(200).json("Server OK")
 });
 app.use("/login", loginRouter);
 app.use("/signup", signupRouter);

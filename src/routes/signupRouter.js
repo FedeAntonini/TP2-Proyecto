@@ -1,15 +1,7 @@
 const express = require("express");
 const routersignup = express.Router();
-const passport = require("passport");
+const { signup } = require("../controllers/authController");
 
-routersignup.get("/", (req, res) =>{
-    res.render("signup", {title: "Register"});
-});
-
-routersignup.post("/", passport.authenticate("register", {
-    failureRedirect: "/signup",
-    successRedirect:"/login",
-    passReqToCallback:true
-}));
+routersignup.post("/", signup);
 
 module.exports = routersignup;

@@ -1,0 +1,105 @@
+const usersModel = require("../data/mongo/models/usersModel");
+const cartModel = require("../data/mongo/models/cartsModel");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+
+const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
+
+async function signup(req, res) {
+    const { firstname, lastname, email, age, password, confirm_password } = req.body;
+
+    try {
+        if (!email || !firstname || !lastname || !age || !password || !confirm_password) {
+            return res.status(400).json({ error: "Missing data" });
+        }
+
+        if (password !== confirm_password) {
+            return res.status(400).json({ error: "Passwords don't match" });
+        }
+
+        const userExists = await usersModel.findOne({ email });
+        if (userExists) {
+            return res.status(400).json({ error: "This account is already registered" });
+        }
+
+        const newCart = await cartModel.create({});
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newUser = await usersModel.create({
+            firstname,
+            lastname,
+            email,
+            age,
+            password: hashedPassword,
+            cartId: newCart._id
+        });
+
+        const token = jwt.sign(
+            { id: newUser._id, email: newUser.email },
+            JWT_SECRET,
+            { expiresIn: "1d" }
+        );
+
+        return res.status(201).json({
+            message: "User created",
+            user: {
+                id: newUser._id,
+                firstname: newUser.firstname,
+                lastname: newUser.lastname,
+                email: newUser.email,
+                age: newUser.age,
+                cartId: newUser.cartId
+            },
+            token
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: "Server error" });
+    }
+}
+
+async function login(req, res) {
+    const { email, password } = req.body;
+
+    try {
+        const user = await usersModel.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ error: "This account doesn't exist" });
+        }
+        const validPassword = await bcrypt.compare(password, user.password);
+        if (!validPassword) {
+            return res.status(400).json({ error: "Your password is incorrect" });
+        }
+
+        await usersModel.findOneAndUpdate(
+            { email },
+            { last_connection: new Date() }
+        );
+
+        const token = jwt.sign(
+            { id: user._id, email: user.email },
+            JWT_SECRET,
+            { expiresIn: "1d" }
+        );
+
+        return res.status(200).json({
+            message: "Login successful",
+            user: {
+                id: user._id,
+                firstname: user.firstname,
+                lastname: user.lastname,
+                email: user.email,
+                age: user.age,
+                cartId: user.cartId
+            },
+            token
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: "Server error" });
+    }
+}
+
+module.exports = { signup, login };

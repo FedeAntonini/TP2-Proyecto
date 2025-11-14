@@ -1,23 +1,13 @@
 const express = require("express");
 const routerLogin = express.Router();
-const passport = require("passport");
+const { login } = require("../controllers/authController");
 
 routerLogin.get("/", (req, res) =>{
-    res.render("login", {title: "Login"});
+    res.status(200).json({
+        message: "Login endpoint. Send POST /login with email and password."
+    });
 });
 
-routerLogin.post("/", passport.authenticate("login", {failureRedirect:"/login"}),async (req,res) =>{
-    req.session.user = {
-        _id: req.user._id,
-        firstname: req.user.firstname,
-        lastname: req.user.lastname,
-        age: req.user.age,
-        admin: req.user.admin,
-        email: req.user.email,
-        cartId: req.user.cartId,
-        premium: req.user.premium
-    }
-    res.status(200).redirect("api/products");
-});
+routerLogin.post("/", login);
 
 module.exports = routerLogin;
