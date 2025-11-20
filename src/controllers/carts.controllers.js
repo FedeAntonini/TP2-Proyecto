@@ -16,21 +16,29 @@ const getAllCarts = async (req, res) =>{
 };
 
 const getCartById = async (req, res) =>{
-    if(req.session.user){
-        const {cid} = req.params;
-        try {
-            let totalPrice = 0;
-            const cart = await cartsService.getOne(cid);
-            for(let i = 0; i < cart.products.length; i++){
-                totalPrice = totalPrice + (cart.products[i].quantity * cart.products[i].product.price);
-            }
-            res.status(200).render("cartId", {cart:cart, totalPrice:totalPrice});
-        } catch (err) {
-            req.flash("error", "Internal Server Error");
-            res.status(500).redirect("/api/products");
+    const {cid} = req.params;
+    try {
+        const cart = await cartsService.getOne(cid);
+        if(!cart){
+            return res.status(404).json({
+                success: false,
+                error: "Cart not found"
+            });
         }
-    }else{
-        res.render("cartId", {});
+        let totalPrice = 0;
+        for(let i = 0; i < cart.products.length; i++){
+            totalPrice = totalPrice + (cart.products[i].quantity * cart.products[i].product.price);
+        }
+        res.status(200).json({
+            success: true,
+            cart: cart,
+            totalPrice: totalPrice
+        });
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            error: "Internal Server Error"
+        });
     }
 };
 
@@ -45,59 +53,93 @@ const createCart = async (req, res) =>{
 
 const deleteAllProductsByCart = async (req, res) =>{
     const { cid } = req.params;
-    if(req.session.user.cartId === cid | req.session.user.admin){
+    if(req.session.user && (req.session.user.cartId === cid || req.session.user.admin)){
         try{
             const response = await cartsService.deleteAllProducts(cid);
-            req.flash("success","Empty cart successfully");
-            res.status(200).redirect(`/api/carts/${cid}`);
+            res.status(200).json({
+                success: true,
+                message: "Empty cart successfully",
+                cart: response
+            });
         }catch (err) {
-            console.log(err);
-            res.status(500).redirect(`/api/carts/${cid}`)
+            res.status(500).json({
+                success: false,
+                error: "Internal Server Error"
+            });
         }
     }else{
-        req.flash("error", "You don't have access to this section");
-        res.status(401).redirect("/api/products");
+        res.status(401).json({
+            success: false,
+            error: "You don't have access to this section"
+        });
     }
 };
 
 const deleteProductByCart = async (req, res) =>{
     const { cid } = req.params;
     const { pid } = req.params;
-    if(req.session.user.cartId === cid | req.session.user.admin){
+    if(req.session.user && (req.session.user.cartId === cid || req.session.user.admin)){
         try{
             const response = await cartsService.deleteProduct(cid,pid);
-            res.status(200).redirect(`/api/carts/${cid}`);
+            res.status(200).json({
+                success: true,
+                message: "Product deleted from cart successfully",
+                cart: response
+            });
         }catch(err){
-            res.status(500).send(err.message);
+            res.status(500).json({
+                success: false,
+                error: err.message
+            });
         }
     }else{
-        req.flash("error", "You don't have access to this section");
-        res.status(401).redirect("/api/products");
+        res.status(401).json({
+            success: false,
+            error: "You don't have access to this section"
+        });
     }
 }
 
 const addProductsToCart = async (req,res) =>{
     const { cid } = req.params;
     const {productId, quantity} = req.body;
-    const result = await productsService.getOne(productId);
-    if(req.session.user.admin){
-        req.flash("error", "You can't add products to cart as admin");
-        res.status(401).redirect("/api/products");
-    }else if(req.session.user.premium && result.owner === req.session.user.email){
-        req.flash("error", "you can't add your products to cart");
-        res.status(401).redirect("/api/products");
-    }else if(quantity > result.stock){
-        req.flash("error", "Error, product is not in stock");
-        res.status(401).redirect("/api/products");
-    }else{
-        try{
-            const response = await cartsService.addProduct(cid, productId, quantity);
-            req.flash("success", "Product added to cart");
-            res.status(200).redirect(`/api/carts/${cid}`);
-        }catch(error){
-            req.flash("error", "Internal Server Error");
-            res.status(500).redirect("/api/products");
+    try {
+        const result = await productsService.getOne(productId);
+        if(!result){
+            return res.status(404).json({
+                success: false,
+                error: "Product not found"
+            });
         }
+        if(req.session.user && req.session.user.admin){
+            return res.status(401).json({
+                success: false,
+                error: "You can't add products to cart as admin"
+            });
+        }
+        if(req.session.user && req.session.user.premium && result.owner === req.session.user.email){
+            return res.status(401).json({
+                success: false,
+                error: "You can't add your own products to cart"
+            });
+        }
+        if(quantity > result.stock){
+            return res.status(400).json({
+                success: false,
+                error: "Error, product is not in stock"
+            });
+        }
+        const response = await cartsService.addProduct(cid, productId, quantity);
+        res.status(200).json({
+            success: true,
+            message: "Product added to cart",
+            cart: response
+        });
+    }catch(error){
+        res.status(500).json({
+            success: false,
+            error: "Internal Server Error"
+        });
     }     
 }
 
@@ -112,23 +154,40 @@ const updateProductByCart = async (req,res) =>{
     
     try{
         const response = await cartsService.updateProduct(cid,productObject);
-        res.status(200).send({ message: "Product Updated", response });
+        res.status(200).json({
+            success: true,
+            message: "Product Updated",
+            cart: response
+        });
     }catch (err) {
-        req.flash("error", "Internal Server Error");
-        res.status(500).redirect("/api/products");
+        res.status(500).json({
+            success: false,
+            error: "Internal Server Error"
+        });
     }
 }
 
 const finalizePurchase = async (req,res) =>{
     const { cid } = req.params;
+    if(!req.session.user){
+        return res.status(401).json({
+            success: false,
+            error: "You must be logged in to finalize purchase"
+        });
+    }
     const user = req.session.user.email;
     try{
         const response = await cartsService.finalizePurchase(cid, user);
-        req.flash("success", "Successful purchase");
-        res.status(500).redirect(`/api/carts/${cid}`);
+        res.status(200).json({
+            success: true,
+            message: "Successful purchase",
+            purchase: response
+        });
     }catch(error){
-        req.flash("error", "Internal Server Error");
-        res.status(500).redirect("/api/products");
+        res.status(500).json({
+            success: false,
+            error: "Internal Server Error"
+        });
     }
 }
 

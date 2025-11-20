@@ -5,13 +5,12 @@ const config = require("./src/config/config");
 const loginRouter = require("./src/routes/loginRouter");
 const signupRouter = require("./src/routes/signupRouter");
 const MongoStore = require("connect-mongo");
-const flash = require("connect-flash");
 const session = require("express-session");
-const methodOverride = require("method-override");
 const sessionRouter = require("./src/routes/sessionsRouter");
 const mongoose = require("mongoose");
 const app = express();
 const usersRouter = require("./src/routes/usersRouter");
+const cartsRouter = require("./src/routes/cartsRouter");
 
 mongoose.connect(config.MONGO_URI)
     .then(() => console.log("MongoDB connected successfully"))
@@ -22,8 +21,6 @@ const httpServer = app.listen(config.PORT, ()=>{console.log(`Server running on p
 //Middlewares
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
-app.use(methodOverride("_method"));
-app.use(flash());
 app.use(
     session({
         key: "EcommerceCookie",
@@ -40,11 +37,20 @@ app.use("/api/sessions", sessionRouter);
 
 //Routes
 app.get("/", (req,res)=>{
-    res.status(200).json("Server OK")
+    res.status(200).json({
+        success: true,
+        message: "Server OK"
+    });
 });
 app.use("/login", loginRouter);
 app.use("/signup", signupRouter);
 app.use("/api/users",usersRouter);
-app.use((req, res, next) => {
-    res.redirect('/api/products');
+app.use("/api/carts", cartsRouter);
+
+//404 handler
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        error: "Route not found"
+    });
 });
