@@ -2,6 +2,7 @@ const usersModel = require("../data/mongo/models/usersModel");
 const cartModel = require("../data/mongo/models/cartsModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { logger } = require("../utils/logger");
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 
@@ -9,16 +10,21 @@ async function signup(req, res) {
     const { firstname, lastname, email, age, password, confirm_password } = req.body;
 
     try {
+        logger.info(`Signup attempt: ${email}`);
+        
         if (!email || !firstname || !lastname || !age || !password || !confirm_password) {
+            logger.warn(`Signup failed: Missing data - ${email}`);
             return res.status(400).json({ error: "Missing data" });
         }
 
         if (password !== confirm_password) {
+            logger.warn(`Signup failed: Passwords don't match - ${email}`);
             return res.status(400).json({ error: "Passwords don't match" });
         }
 
         const userExists = await usersModel.findOne({ email });
         if (userExists) {
+            logger.warn(`Signup failed: User already exists - ${email}`);
             return res.status(400).json({ error: "This account is already registered" });
         }
 
@@ -40,6 +46,8 @@ async function signup(req, res) {
             { expiresIn: "1d" }
         );
 
+        logger.success(`User created successfully: ${email} (ID: ${newUser._id})`);
+
         return res.status(201).json({
             message: "User created",
             user: {
@@ -54,7 +62,7 @@ async function signup(req, res) {
         });
 
     } catch (error) {
-        console.error(error);
+        logger.error(`Signup error: ${error.message} - ${email}`, error);
         return res.status(500).json({ error: "Server error" });
     }
 }
@@ -63,12 +71,16 @@ async function login(req, res) {
     const { email, password } = req.body;
 
     try {
+        logger.info(`Login attempt: ${email}`);
+        
         const user = await usersModel.findOne({ email });
         if (!user) {
+            logger.warn(`Login failed: User not found - ${email}`);
             return res.status(400).json({ error: "This account doesn't exist" });
         }
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) {
+            logger.warn(`Login failed: Invalid password - ${email}`);
             return res.status(400).json({ error: "Your password is incorrect" });
         }
 
@@ -82,6 +94,8 @@ async function login(req, res) {
             JWT_SECRET,
             { expiresIn: "1d" }
         );
+
+        logger.success(`Login successful: ${email} (ID: ${user._id})`);
 
         return res.status(200).json({
             message: "Login successful",
@@ -97,7 +111,7 @@ async function login(req, res) {
         });
 
     } catch (error) {
-        console.error(error);
+        logger.error(`Login error: ${error.message} - ${email}`, error);
         return res.status(500).json({ error: "Server error" });
     }
 }

@@ -1,5 +1,6 @@
 const { verifyToken, extractTokenFromHeader } = require("../../utils/jwt");
 const usersModel = require("../../data/mongo/models/usersModel");
+const { logger } = require("../../utils/logger");
 
 const authenticateJWT = async (req, res, next) => {
     try {
@@ -7,6 +8,7 @@ const authenticateJWT = async (req, res, next) => {
         const token = extractTokenFromHeader(authHeader);
 
         if (!token) {
+            logger.warn(`Authentication failed: No token provided - ${req.method} ${req.path}`);
             return res.status(401).json({
                 success: false,
                 error: "No token provided. Authorization header required: Bearer <token>"
@@ -19,6 +21,7 @@ const authenticateJWT = async (req, res, next) => {
         const user = await usersModel.findById(userId);
         
         if (!user) {
+            logger.warn(`Authentication failed: User not found - User ID: ${userId}`);
             return res.status(401).json({
                 success: false,
                 error: "User not found"
@@ -36,8 +39,10 @@ const authenticateJWT = async (req, res, next) => {
             cartId: user.cartId
         };
 
+        logger.debug(`User authenticated: ${user.email} - ${req.method} ${req.path}`);
         next();
     } catch (error) {
+        logger.error(`Authentication error: ${error.message} - ${req.method} ${req.path}`);
         return res.status(401).json({
             success: false,
             error: error.message || "Authentication failed"
