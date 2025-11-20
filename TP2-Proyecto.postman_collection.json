@@ -1,0 +1,808 @@
+{
+	"info": {
+		"_postman_id": "tp2-proyecto-api",
+		"name": "TP2 Proyecto - Ecommerce API",
+		"description": "Colección completa de endpoints para la API de Ecommerce. El token JWT se guarda automáticamente al hacer login exitoso.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								""
+							]
+						},
+						"description": "Verifica que el servidor esté funcionando"
+					},
+					"response": []
+				},
+				{
+					"name": "Login Info",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"login"
+							]
+						},
+						"description": "Obtiene información sobre el endpoint de login"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.token) {",
+									"        pm.environment.set(\"jwt_token\", jsonData.token);",
+									"        console.log(\"Token JWT guardado automáticamente\");",
+									"    }",
+									"    if (jsonData.user && jsonData.user.id) {",
+									"        pm.environment.set(\"user_id\", jsonData.user.id);",
+									"        console.log(\"User ID guardado: \" + jsonData.user.id);",
+									"    }",
+									"    if (jsonData.user && jsonData.user.cartId) {",
+									"        pm.environment.set(\"cart_id\", jsonData.user.cartId);",
+									"        console.log(\"Cart ID guardado: \" + jsonData.user.cartId);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"login"
+							]
+						},
+						"description": "Inicia sesión y guarda automáticamente el token JWT en la variable de colección"
+					},
+					"response": []
+				},
+				{
+					"name": "Signup",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.token) {",
+									"        pm.environment.set(\"jwt_token\", jsonData.token);",
+									"        console.log(\"Token JWT guardado automáticamente\");",
+									"    }",
+									"    if (jsonData.user && jsonData.user.id) {",
+									"        pm.environment.set(\"user_id\", jsonData.user.id);",
+									"        console.log(\"User ID guardado: \" + jsonData.user.id);",
+									"    }",
+									"    if (jsonData.user && jsonData.user.cartId) {",
+									"        pm.environment.set(\"cart_id\", jsonData.user.cartId);",
+									"        console.log(\"Cart ID guardado: \" + jsonData.user.cartId);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstname\": \"John\",\n    \"lastname\": \"Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"age\": 25,\n    \"password\": \"password123\",\n    \"confirm_password\": \"password123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/signup",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"signup"
+							]
+						},
+						"description": "Registra un nuevo usuario y guarda automáticamente el token JWT"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints de autenticación"
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get All Users (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users"
+							]
+						},
+						"description": "Obtiene todos los usuarios. Requiere JWT y permisos de admin."
+					},
+					"response": []
+				},
+				{
+					"name": "Get User By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/user/:uid",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"user",
+								":uid"
+							],
+							"variable": [
+								{
+									"key": "uid",
+									"value": "{{user_id}}",
+									"description": "ID del usuario (se guarda automáticamente al hacer login)"
+								}
+							]
+						},
+						"description": "Obtiene un usuario por ID. Solo puedes ver tu propio perfil. Usa {{user_id}} automáticamente."
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"profile"
+							]
+						},
+						"description": "Obtiene el perfil del usuario autenticado"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstname\": \"John Updated\",\n    \"lastname\": \"Doe Updated\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"profile"
+							]
+						},
+						"description": "Actualiza el perfil del usuario autenticado"
+					},
+					"response": []
+				},
+				{
+					"name": "Change Premium Status (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"premium\": \"true\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/premium/:uid",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"premium",
+								":uid"
+							],
+							"variable": [
+								{
+									"key": "uid",
+									"value": "{{user_id}}",
+									"description": "ID del usuario (usa {{user_id}} o ingresa otro ID)"
+								}
+							]
+						},
+						"description": "Cambia el estado premium de un usuario. Requiere JWT y permisos de admin."
+					},
+					"response": []
+				},
+				{
+					"name": "Change Admin Status (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"admin\": \"true\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/admin/:uid",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"admin",
+								":uid"
+							],
+							"variable": [
+								{
+									"key": "uid",
+									"value": "{{user_id}}",
+									"description": "ID del usuario (usa {{user_id}} o ingresa otro ID)"
+								}
+							]
+						},
+						"description": "Cambia el estado admin de un usuario. Requiere JWT y permisos de admin."
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"logout"
+							]
+						},
+						"description": "Cierra sesión y actualiza la última conexión"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Inactive Accounts (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/deleteAccounts",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"deleteAccounts"
+							]
+						},
+						"description": "Elimina cuentas inactivas (más de 2 días sin conexión). Requiere JWT y permisos de admin."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/delete/:uid",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"delete",
+								":uid"
+							],
+							"variable": [
+								{
+									"key": "uid",
+									"value": "{{user_id}}",
+									"description": "ID del usuario a eliminar (usa {{user_id}} o ingresa otro ID)"
+								}
+							]
+						},
+						"description": "Elimina un usuario. Requiere JWT y permisos de admin."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints relacionados con usuarios"
+		},
+		{
+			"name": "Carts",
+			"item": [
+				{
+					"name": "Get All Carts (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/carts",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"carts"
+							]
+						},
+						"description": "Obtiene todos los carritos. Requiere JWT y permisos de admin."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Cart By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/carts/:cid",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"carts",
+								":cid"
+							],
+							"variable": [
+								{
+									"key": "cid",
+									"value": "{{cart_id}}",
+									"description": "ID del carrito (se guarda automáticamente al hacer login)"
+								}
+							]
+						},
+						"description": "Obtiene un carrito por ID. No requiere autenticación. Usa {{cart_id}} automáticamente."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Anonymous Cart",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/carts/anonymus",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"carts",
+								"anonymus"
+							]
+						},
+						"description": "Obtiene un carrito anónimo. No requiere autenticación."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Cart (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/carts",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"carts"
+							]
+						},
+						"description": "Crea un nuevo carrito. Requiere JWT y permisos de admin."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete All Products From Cart",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/carts/:cid/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"carts",
+								":cid",
+								"products"
+							],
+							"variable": [
+								{
+									"key": "cid",
+									"value": "{{cart_id}}",
+									"description": "ID del carrito (se guarda automáticamente al hacer login)"
+								}
+							]
+						},
+						"description": "Elimina todos los productos de un carrito. Requiere JWT y que el carrito pertenezca al usuario o ser admin. Usa {{cart_id}} automáticamente."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Product From Cart",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/carts/:cid/products/:pid",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"carts",
+								":cid",
+								"products",
+								":pid"
+							],
+							"variable": [
+								{
+									"key": "cid",
+									"value": "{{cart_id}}",
+									"description": "ID del carrito (se guarda automáticamente al hacer login)"
+								},
+								{
+									"key": "pid",
+									"value": "{{product_id}}",
+									"description": "ID del producto"
+								}
+							]
+						},
+						"description": "Elimina un producto específico de un carrito. Requiere JWT y que el carrito pertenezca al usuario o ser admin."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Product Quantity In Cart",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"quantity\": 5\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/carts/:cid/products/:pid",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"carts",
+								":cid",
+								"products",
+								":pid"
+							],
+							"variable": [
+								{
+									"key": "cid",
+									"value": "{{cart_id}}",
+									"description": "ID del carrito (se guarda automáticamente al hacer login)"
+								},
+								{
+									"key": "pid",
+									"value": "{{product_id}}",
+									"description": "ID del producto"
+								}
+							]
+						},
+						"description": "Actualiza la cantidad de un producto en el carrito. Requiere JWT."
+					},
+					"response": []
+				},
+				{
+					"name": "Add Product To Cart",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"productId\": \"{{product_id}}\",\n    \"quantity\": 2\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/carts/:cid",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"carts",
+								":cid"
+							],
+							"variable": [
+								{
+									"key": "cid",
+									"value": "{{cart_id}}",
+									"description": "ID del carrito (se guarda automáticamente al hacer login)"
+								}
+							]
+						},
+						"description": "Agrega un producto al carrito. Requiere JWT. Los admins no pueden agregar productos. Usa {{cart_id}} automáticamente."
+					},
+					"response": []
+				},
+				{
+					"name": "Finalize Purchase",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/carts/:cid/purchase",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"carts",
+								":cid",
+								"purchase"
+							],
+							"variable": [
+								{
+									"key": "cid",
+									"value": "{{cart_id}}",
+									"description": "ID del carrito (se guarda automáticamente al hacer login)"
+								}
+							]
+						},
+						"description": "Finaliza la compra de un carrito. Requiere JWT. Usa {{cart_id}} automáticamente."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints relacionados con carritos de compra"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": []
+}
+
