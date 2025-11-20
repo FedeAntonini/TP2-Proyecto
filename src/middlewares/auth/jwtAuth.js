@@ -28,16 +28,29 @@ const authenticateJWT = async (req, res, next) => {
             });
         }
 
+        // Asegurar que admin y premium sean booleanos
+        // MongoDB puede devolver null, undefined, o strings
+        const isAdmin = user.admin === true || user.admin === "true" || user.admin === 1;
+        const isPremium = user.premium === true || user.premium === "true" || user.premium === 1;
+
+        // Log para debugging
+        logger.debug(`User ${user.email} - admin from DB: ${user.admin} (type: ${typeof user.admin}), converted: ${isAdmin}`);
+
         req.user = {
             _id: user._id,
             email: user.email,
             firstname: user.firstname,
             lastname: user.lastname,
             age: user.age,
-            admin: user.admin,
-            premium: user.premium,
+            admin: isAdmin,
+            premium: isPremium,
             cartId: user.cartId
         };
+        
+        if ((decoded.admin !== undefined && decoded.admin !== user.admin) || 
+            (decoded.premium !== undefined && decoded.premium !== user.premium)) {
+            logger.warn(`Token data mismatch for user ${user.email}. DB values (admin: ${user.admin}, premium: ${user.premium}) take precedence over token.`);
+        }
 
         logger.debug(`User authenticated: ${user.email} - ${req.method} ${req.path}`);
         next();

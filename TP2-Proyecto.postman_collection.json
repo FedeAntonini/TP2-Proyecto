@@ -781,6 +781,281 @@
 				}
 			],
 			"description": "Endpoints relacionados con carritos de compra"
+		},
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "Get All Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/products?limit=10&page=1&sort=asc&query=",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"products"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Número de productos por página"
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Número de página"
+								},
+								{
+									"key": "sort",
+									"value": "asc",
+									"description": "Orden: asc o desc (por precio)"
+								},
+								{
+									"key": "query",
+									"value": "",
+									"description": "Búsqueda en title, description, category"
+								}
+							]
+						},
+						"description": "Obtiene todos los productos con paginación, ordenamiento y búsqueda. No requiere autenticación."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/products/:pid",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"products",
+								":pid"
+							],
+							"variable": [
+								{
+									"key": "pid",
+									"value": "{{product_id}}",
+									"description": "ID del producto"
+								}
+							]
+						},
+						"description": "Obtiene un producto por ID. No requiere autenticación."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Product",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.product && jsonData.product._id) {",
+									"        pm.environment.set(\"product_id\", jsonData.product._id);",
+									"        console.log(\"Product ID guardado: \" + jsonData.product._id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Laptop Dell XPS 15\",\n    \"description\": \"Laptop gaming de alto rendimiento con pantalla 4K\",\n    \"price\": 1299.99,\n    \"stock\": 15,\n    \"category\": \"electronics\",\n    \"thumbnails\": [\"https://example.com/image1.jpg\"],\n    \"code\": \"LAP001\",\n    \"status\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"products"
+							]
+						},
+						"description": "Crea un nuevo producto. Requiere JWT y permisos de Admin o Premium. El campo 'owner' se asigna automáticamente. Guarda el product_id automáticamente."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Product",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"price\": 1199.99,\n    \"stock\": 12,\n    \"title\": \"Laptop Dell XPS 15 Updated\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/products/:pid",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"products",
+								":pid"
+							],
+							"variable": [
+								{
+									"key": "pid",
+									"value": "{{product_id}}",
+									"description": "ID del producto a actualizar"
+								}
+							]
+						},
+						"description": "Actualiza un producto. Requiere JWT y ser Admin o Owner del producto. Premium solo puede actualizar sus propios productos."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Product",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/products/:pid",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"products",
+								":pid"
+							],
+							"variable": [
+								{
+									"key": "pid",
+									"value": "{{product_id}}",
+									"description": "ID del producto a eliminar"
+								}
+							]
+						},
+						"description": "Elimina un producto. Requiere JWT y ser Admin o Owner del producto. Premium solo puede eliminar sus propios productos."
+					},
+					"response": []
+				},
+				{
+					"name": "Search Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/products?query=laptop&limit=5&page=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"products"
+							],
+							"query": [
+								{
+									"key": "query",
+									"value": "laptop",
+									"description": "Término de búsqueda"
+								},
+								{
+									"key": "limit",
+									"value": "5",
+									"description": "Resultados por página"
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Página"
+								}
+							]
+						},
+						"description": "Busca productos por título, descripción o categoría. No requiere autenticación."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Products Sorted",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/products?sort=desc&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"products"
+							],
+							"query": [
+								{
+									"key": "sort",
+									"value": "desc",
+									"description": "Orden descendente por precio"
+								},
+								{
+									"key": "limit",
+									"value": "20",
+									"description": "Resultados por página"
+								}
+							]
+						},
+						"description": "Obtiene productos ordenados por precio (descendente). No requiere autenticación."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints relacionados con productos"
 		}
 	],
 	"event": [

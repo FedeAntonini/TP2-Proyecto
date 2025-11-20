@@ -9,6 +9,7 @@ const mongoose = require("mongoose");
 const app = express();
 const usersRouter = require("./src/routes/usersRouter");
 const cartsRouter = require("./src/routes/cartsRouter");
+const productsRouter = require("./src/routes/productsRouter");
 
 // MongoDB connection
 mongoose.connect(config.MONGO_URI)
@@ -36,6 +37,7 @@ app.use("/login", loginRouter);
 app.use("/signup", signupRouter);
 app.use("/api/users",usersRouter);
 app.use("/api/carts", cartsRouter);
+app.use("/api/products", productsRouter);
 
 //404 handler
 app.use((req, res) => {

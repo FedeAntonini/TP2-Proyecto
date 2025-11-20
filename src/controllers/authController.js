@@ -1,10 +1,8 @@
 const usersModel = require("../data/mongo/models/usersModel");
 const cartModel = require("../data/mongo/models/cartsModel");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+const { generateToken } = require("../utils/jwt");
 const { logger } = require("../utils/logger");
-
-const JWT_SECRET = process.env.JWT_SECRET || "supersecretkey";
 
 async function signup(req, res) {
     const { firstname, lastname, email, age, password, confirm_password } = req.body;
@@ -40,11 +38,14 @@ async function signup(req, res) {
             cartId: newCart._id
         });
 
-        const token = jwt.sign(
-            { id: newUser._id, email: newUser.email },
-            JWT_SECRET,
-            { expiresIn: "1d" }
-        );
+        // Generar token con toda la información del usuario (incluyendo admin y premium)
+        const token = generateToken({
+            _id: newUser._id,
+            email: newUser.email,
+            admin: newUser.admin || false,
+            premium: newUser.premium || false,
+            cartId: newUser.cartId
+        });
 
         logger.success(`User created successfully: ${email} (ID: ${newUser._id})`);
 
@@ -89,11 +90,14 @@ async function login(req, res) {
             { last_connection: new Date() }
         );
 
-        const token = jwt.sign(
-            { id: user._id, email: user.email },
-            JWT_SECRET,
-            { expiresIn: "1d" }
-        );
+        // Generar token con toda la información del usuario (incluyendo admin y premium)
+        const token = generateToken({
+            _id: user._id,
+            email: user.email,
+            admin: user.admin || false,
+            premium: user.premium || false,
+            cartId: user.cartId
+        });
 
         logger.success(`Login successful: ${email} (ID: ${user._id})`);
 

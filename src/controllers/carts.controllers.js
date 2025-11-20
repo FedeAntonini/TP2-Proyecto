@@ -111,18 +111,18 @@ const addProductsToCart = async (req,res) =>{
                 error: "Product not found"
             });
         }
-        if(req.user && req.user.admin){
-            return res.status(401).json({
-                success: false,
-                error: "You can't add products to cart as admin"
-            });
-        }
-        if(req.user && req.user.premium && result.owner === req.user.email){
-            return res.status(401).json({
-                success: false,
-                error: "You can't add your own products to cart"
-            });
-        }
+        // if(req.user && req.user.admin){
+        //     return res.status(401).json({
+        //         success: false,
+        //         error: "You can't add products to cart as admin"
+        //     });
+        // }
+        // if(req.user && req.user.premium && result.owner === req.user.email){
+        //     return res.status(401).json({
+        //         success: false,
+        //         error: "You can't add your own products to cart"
+        //     });
+        // }
         if(quantity > result.stock){
             return res.status(400).json({
                 success: false,
