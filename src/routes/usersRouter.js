@@ -5,9 +5,8 @@ const usersRouter = express.Router();
 const { authenticateJWT } = require("../middlewares/auth/jwtAuth");
 
 
-//Get All users
-usersRouter.get("/", async(req,res)=>{
-    if(req.session.user && req.session.user.admin){
+usersRouter.get("/", authenticateJWT, async(req,res)=>{
+    if(req.user && req.user.admin){
         try {
             const users = await usersModel.find({},{
                 _id: 1,
@@ -30,9 +29,9 @@ usersRouter.get("/", async(req,res)=>{
             });
         }
     }else{  
-        res.status(401).json({
+        res.status(403).json({
             success: false,
-            error: "You don't have access to this section"
+            error: "You don't have access to this section. Admin privileges required."
         });
     }
 });
@@ -80,80 +79,64 @@ try {
 });
 
 //Get User Profile
-usersRouter.get("/profile", async (req,res)=>{
-    if(req.session.user){
-        try{
-            const dbUser = await usersModel.findById(req.session.user._id, {
-                _id: 1,
-                firstname: 1,
-                lastname: 1,
-                age: 1,
-                email: 1,
-                premium: 1,
-                admin: 1,
-                last_connection: 1
-            });
-            res.status(200).json({
-                success: true,
-                user: dbUser
-            });
-        }catch(error){
-            res.status(500).json({
-                success: false,
-                error: "Internal Server Error"
-            });
-        }
-    }else{
-        res.status(401).json({
+usersRouter.get("/profile", authenticateJWT, async (req,res)=>{
+    try{
+        const dbUser = await usersModel.findById(req.user._id, {
+            _id: 1,
+            firstname: 1,
+            lastname: 1,
+            age: 1,
+            email: 1,
+            premium: 1,
+            admin: 1,
+            last_connection: 1
+        });
+        res.status(200).json({
+            success: true,
+            user: dbUser
+        });
+    }catch(error){
+        res.status(500).json({
             success: false,
-            error: "You don't have access to this section"
+            error: "Internal Server Error"
         });
     }
 });
 
 //Post User Fields
-usersRouter.post("/profile", async (req,res)=>{
-    if(req.session.user){
-        try{
-            const {firstname,lastname} = req.body;
-            const dbUser = await usersModel.findByIdAndUpdate(
-                { _id: req.session.user._id },
-                { firstname, lastname}, 
-                { new:true }
-            );
-            req.session.user.firstname = firstname;
-            req.session.user.lastname = lastname;
-            res.status(200).json({
-                success: true,
-                message: "Profile updated successfully",
-                user: {
-                    _id: dbUser._id,
-                    firstname: dbUser.firstname,
-                    lastname: dbUser.lastname,
-                    age: dbUser.age,
-                    email: dbUser.email,
-                    premium: dbUser.premium,
-                    admin: dbUser.admin,
-                    last_connection: dbUser.last_connection
-                }
-            });
-        }catch(error){
-            res.status(500).json({
-                success: false,
-                error: "Internal Server Error"
-            });
-        }
-    }else{
-        res.status(401).json({
+usersRouter.post("/profile", authenticateJWT, async (req,res)=>{
+    try{
+        const {firstname,lastname} = req.body;
+        const dbUser = await usersModel.findByIdAndUpdate(
+            { _id: req.user._id },
+            { firstname, lastname}, 
+            { new:true }
+        );
+        res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            user: {
+                _id: dbUser._id,
+                firstname: dbUser.firstname,
+                lastname: dbUser.lastname,
+                age: dbUser.age,
+                email: dbUser.email,
+                premium: dbUser.premium,
+                admin: dbUser.admin,
+                last_connection: dbUser.last_connection
+            }
+        });
+    }catch(error){
+        res.status(500).json({
             success: false,
-            error: "You don't have access to this section"
+            error: "Internal Server Error"
         });
     }
 });
 
-//Change Premium Status
-usersRouter.post("/premium/:uid", async(req,res) =>{
-    if(req.session.user && req.session.user.admin){
+//Change Premium Status (Admin only)
+usersRouter.post("/premium/:uid", authenticateJWT, async(req,res) =>{
+    if(req.user && req.user.admin){
         const { uid } = req.params;
         const { premium } = req.body;
         try{
@@ -208,9 +191,9 @@ usersRouter.post("/premium/:uid", async(req,res) =>{
     }
 });
 
-//Change Admin Status
-usersRouter.post("/admin/:uid", async(req,res) =>{
-    if(req.session.user && req.session.user.admin){
+//Change Admin Status (Admin only)
+usersRouter.post("/admin/:uid", authenticateJWT, async(req,res) =>{
+    if(req.user && req.user.admin){
         const { uid } = req.params;
         const { admin } = req.body;
         try{
@@ -245,33 +228,25 @@ usersRouter.post("/admin/:uid", async(req,res) =>{
     }
 });
 
-//Destroy Session
-usersRouter.get("/logout", async(req,res) =>{
-    if(req.session.user){
-        try {
-            await usersModel.findOneAndUpdate({_id:req.session.user._id}, {last_connection: new Date()});
-            req.session.destroy();
-            res.status(200).json({
-                success: true,
-                message: "Logout successful"
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                error: "Internal Server Error"
-            });
-        }
-    }else{
+//Logout (Update last connection)
+usersRouter.get("/logout", authenticateJWT, async(req,res) =>{
+    try {
+        await usersModel.findOneAndUpdate({_id:req.user._id}, {last_connection: new Date()});
         res.status(200).json({
             success: true,
-            message: "No active session"
+            message: "Logout successful. Last connection updated."
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: "Internal Server Error"
         });
     }
 });
 
-//Delete inactive Accounts (Two Days Ago)
-usersRouter.get("/deleteAccounts", async(req,res)=>{
-    if(req.session.user && req.session.user.admin){
+//Delete inactive Accounts (Two Days Ago) - Admin only
+usersRouter.get("/deleteAccounts", authenticateJWT, async(req,res)=>{
+    if(req.user && req.user.admin){
         const twoDays = new Date();
         twoDays.setDate(twoDays.getDate() - 2);
         try{
@@ -296,8 +271,8 @@ usersRouter.get("/deleteAccounts", async(req,res)=>{
 });
 
 //Delete User By admin
-usersRouter.post("/delete/:uid", async(req,res)=>{
-    if(req.session.user && req.session.user.admin){
+usersRouter.post("/delete/:uid", authenticateJWT, async(req,res)=>{
+    if(req.user && req.user.admin){
         const { uid } = req.params;
         try{
             const user = await usersModel.findById(uid);

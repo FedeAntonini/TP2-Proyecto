@@ -53,7 +53,7 @@ const createCart = async (req, res) =>{
 
 const deleteAllProductsByCart = async (req, res) =>{
     const { cid } = req.params;
-    if(req.session.user && (req.session.user.cartId === cid || req.session.user.admin)){
+    if(req.user && (req.user.cartId === cid || req.user.admin)){
         try{
             const response = await cartsService.deleteAllProducts(cid);
             res.status(200).json({
@@ -78,7 +78,7 @@ const deleteAllProductsByCart = async (req, res) =>{
 const deleteProductByCart = async (req, res) =>{
     const { cid } = req.params;
     const { pid } = req.params;
-    if(req.session.user && (req.session.user.cartId === cid || req.session.user.admin)){
+    if(req.user && (req.user.cartId === cid || req.user.admin)){
         try{
             const response = await cartsService.deleteProduct(cid,pid);
             res.status(200).json({
@@ -111,13 +111,13 @@ const addProductsToCart = async (req,res) =>{
                 error: "Product not found"
             });
         }
-        if(req.session.user && req.session.user.admin){
+        if(req.user && req.user.admin){
             return res.status(401).json({
                 success: false,
                 error: "You can't add products to cart as admin"
             });
         }
-        if(req.session.user && req.session.user.premium && result.owner === req.session.user.email){
+        if(req.user && req.user.premium && result.owner === req.user.email){
             return res.status(401).json({
                 success: false,
                 error: "You can't add your own products to cart"
@@ -169,13 +169,13 @@ const updateProductByCart = async (req,res) =>{
 
 const finalizePurchase = async (req,res) =>{
     const { cid } = req.params;
-    if(!req.session.user){
+    if(!req.user){
         return res.status(401).json({
             success: false,
             error: "You must be logged in to finalize purchase"
         });
     }
-    const user = req.session.user.email;
+    const user = req.user.email;
     try{
         const response = await cartsService.finalizePurchase(cid, user);
         res.status(200).json({
