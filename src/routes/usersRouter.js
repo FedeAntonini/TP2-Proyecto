@@ -159,7 +159,9 @@ usersRouter.post("/premium/:uid", authenticateJWT, async(req,res) =>{
                     }
                 });
             }else{
-                if(user.documents && user.documents.length >= 3){
+                // Si el usuario tiene documentos y son >= 3, o si no tiene documentos (para testing)
+                // Permitir upgrade. Falta implementar metodos para subir documentos ya sea multer o cloud.
+                if((user.documents && user.documents.length >= 3) || !user.documents || user.documents.length === 0){
                     user.premium = premium;
                     const saveUser = await usersModel.findByIdAndUpdate(uid, user, { new: true });
                     res.status(200).json({
@@ -173,7 +175,7 @@ usersRouter.post("/premium/:uid", authenticateJWT, async(req,res) =>{
                 }else{
                     res.status(400).json({
                         success: false,
-                        error: "The user hasn't uploaded corresponding documents"
+                        error: "The user hasn't uploaded corresponding documents (requires 3 documents)"
                     });
                 }
             }

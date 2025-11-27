@@ -1,7 +1,7 @@
 const express = require("express");
 const {getAllCarts, getCartById, createCart, deleteAllProductsByCart, finalizePurchase , deleteProductByCart, addProductsToCart, updateProductByCart} = require("../controllers/carts.controllers");
 const cartsRouter = express.Router();
-const isAdmin = require("../middlewares/auth/isAdmin");
+const { isAdmin } = require("../middlewares/auth/isAdmin");
 const { authenticateJWT } = require("../middlewares/auth/jwtAuth");
 
 //Get all carts (Admin only)
