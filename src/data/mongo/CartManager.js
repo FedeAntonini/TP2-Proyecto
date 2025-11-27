@@ -46,15 +46,20 @@ class CartManager {
             const result = await cartModel.find({ _id: cartId });
         if (result[0].products.length === 0) {
             result[0].products.push(myProduct);
-            const resultSave = await cartModel.findByIdAndUpdate(cartId, {products: result[0].products,});
-            return resultSave;
+            await cartModel.findByIdAndUpdate(cartId, {products: result[0].products}, { new: true });
+            // Retornar el carrito actualizado con populate para incluir información completa de productos
+            const updatedCart = await cartModel.findById(cartId).populate("products.product");
+            return updatedCart;
         }else {
             const index = result[0].products.findIndex((element) => element.product.toString() === myProduct.product)
             
-            index === -1 ? result[0].products.push(myProduct) : result[0].products[index].quantity += 1;
+            index === -1 ? result[0].products.push(myProduct) : result[0].products[index].quantity += quantity;
 
-            const resultSave = await cartModel.findByIdAndUpdate(cartId, {products: result[0].products,});
-            return resultSave;
+            await cartModel.findByIdAndUpdate(cartId, {products: result[0].products}, { new: true });
+            
+            // Retornar el carrito actualizado con populate para incluir información completa de productos
+            const updatedCart = await cartModel.findById(cartId).populate("products.product");
+            return updatedCart;
         }
         }catch(err){
             throw err;

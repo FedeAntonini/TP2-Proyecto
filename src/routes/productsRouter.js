@@ -9,6 +9,7 @@ const {
 const productsRouter = express.Router();
 const { authenticateJWT } = require("../middlewares/auth/jwtAuth");
 const {isAdmin} = require("../middlewares/auth/isAdmin");
+const {isAdminOrPremium} = require("../middlewares/auth/isAdminOrPremium");
 
 // Get all products (Public - no auth required)
 productsRouter.get("/", getAllProducts);
@@ -17,13 +18,15 @@ productsRouter.get("/", getAllProducts);
 productsRouter.get("/:pid", getProductById);
 
 // Create product (Requires JWT - Admin or Premium)
-productsRouter.post("/", authenticateJWT, isAdmin, createProduct);
+productsRouter.post("/", authenticateJWT, isAdminOrPremium, createProduct);
 
 // Update product (Requires JWT - Admin or Owner)
-productsRouter.put("/:pid", authenticateJWT, isAdmin, updateProduct);
+// Note: Controller validates ownership for premium users
+productsRouter.put("/:pid", authenticateJWT, isAdminOrPremium, updateProduct);
 
 // Delete product (Requires JWT - Admin or Owner)
-productsRouter.delete("/:pid", authenticateJWT, isAdmin, deleteProduct);
+// Note: Controller validates ownership for premium users
+productsRouter.delete("/:pid", authenticateJWT, isAdminOrPremium, deleteProduct);
 
 module.exports = productsRouter;
 

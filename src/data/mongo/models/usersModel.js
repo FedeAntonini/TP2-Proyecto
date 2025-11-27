@@ -10,7 +10,15 @@ const usersSchema = new mongoose.Schema({
     premium: {type: Boolean, default: false},
     cartId: {type: String},
     password: {type: String},
-    last_connection:{type: Date}
+    last_connection:{type: Date},
+    documents: {
+        type: [{
+            name: String,
+            reference: String,
+            docType: String
+        }],
+        default: []
+    }
 }, {versionKey: false});
 
 const usersModel = mongoose.model(usersCollection, usersSchema);
