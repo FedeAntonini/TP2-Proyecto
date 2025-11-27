@@ -10,6 +10,9 @@ const app = express();
 const usersRouter = require("./src/routes/usersRouter");
 const cartsRouter = require("./src/routes/cartsRouter");
 const productsRouter = require("./src/routes/productsRouter");
+const ticketsRouter = require("./src/routes/ticketsRouter");
+
+
 
 // MongoDB connection
 mongoose.connect(config.MONGO_URI)
@@ -25,6 +28,7 @@ const httpServer = app.listen(config.PORT, () => {
 app.use(httpLogger); // HTTP request logging
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
+app.use("/api/tickets", ticketsRouter);
 
 //Routes
 app.get("/", (req,res)=>{

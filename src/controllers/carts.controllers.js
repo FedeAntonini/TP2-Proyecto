@@ -5,6 +5,7 @@ const cartsService = new CartsRepository(new Carts());
 const {Products} = require("../dao/factory");
 const {ProductsRepository} = require("../repositories/products.repository");
 const productsService = new ProductsRepository(new Products());
+const ticketModel = require("../data/mongo/models/ticketModel");
 
 const getAllCarts = async (req, res) =>{
     try {
@@ -167,7 +168,86 @@ const updateProductByCart = async (req,res) =>{
     }
 }
 
-const finalizePurchase = async (req,res) =>{
+const finalizePurchase = async (req, res) => {
+    const { cid } = req.params;
+
+    if(!req.user){
+        return res.status(401).json({
+            success: false,
+            error: "You must be logged in to finalize purchase"
+        });
+    }
+
+    try {
+        const cart = await cartsService.getOne(cid);
+
+        if(!cart){
+            return res.status(404).json({
+                success: false,
+                error: "Cart not found"
+            });
+        }
+
+        let totalAmount = 0;
+        const purchasedProducts = [];
+        const outOfStock = [];
+
+        // Procesar productos
+        for(const item of cart.products){
+            const product = await productsService.getOne(item.product._id);
+
+            if(product.stock >= item.quantity){
+                totalAmount += product.price * item.quantity;
+
+                purchasedProducts.push({
+                    product: product._id,
+                    quantity: item.quantity
+                });
+
+                await productsService.updateProduct(product._id, {
+                    stock: product.stock - item.quantity
+                });
+
+            } else {
+                outOfStock.push(item);
+            }
+        }
+
+        // Crear ticket si hay productos disponibles
+        let ticket = null;
+        if(purchasedProducts.length > 0){
+            ticket = await ticketModel.create({
+                code: "TCK-" + Date.now(),
+                purchase_datetime: new Date(),
+                amount: totalAmount,
+                purchaser: req.user.email,
+                products: purchasedProducts
+            });
+        }
+
+        // Actualizar carrito con los productos que **no** se compraron
+        cart.products = outOfStock;
+        await cart.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Purchase processed",
+            ticket: ticket || null,
+            products_not_purchased: outOfStock
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            error: "Internal Server Error"
+        });
+    }
+};
+
+module.exports = {getAllCarts, getCartById, createCart, finalizePurchase, deleteAllProductsByCart, deleteProductByCart, updateProductByCart, addProductsToCart};
+
+/*const finalizePurchase = async (req,res) =>{
     const { cid } = req.params;
     if(!req.user){
         return res.status(401).json({
@@ -189,6 +269,5 @@ const finalizePurchase = async (req,res) =>{
             error: "Internal Server Error"
         });
     }
-}
+}*/
 
-module.exports = {getAllCarts, getCartById, createCart, finalizePurchase, deleteAllProductsByCart, deleteProductByCart, updateProductByCart, addProductsToCart};

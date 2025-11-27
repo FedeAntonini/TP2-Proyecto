@@ -1,8 +1,13 @@
 const express = require("express");
 const {getAllCarts, getCartById, createCart, deleteAllProductsByCart, finalizePurchase , deleteProductByCart, addProductsToCart, updateProductByCart} = require("../controllers/carts.controllers");
 const cartsRouter = express.Router();
-const isAdmin = require("../middlewares/auth/isAdmin");
+const { isAdmin } = require("../middlewares/auth/isAdmin");
 const { authenticateJWT } = require("../middlewares/auth/jwtAuth");
+
+
+
+//  Finalize Purchase (tiene que estar ANTES del :cid)
+cartsRouter.get("/:cid/purchase", authenticateJWT, finalizePurchase);
 
 //Get all carts (Admin only)
 cartsRouter.get("/", authenticateJWT, isAdmin, getAllCarts);
@@ -29,6 +34,8 @@ cartsRouter.put("/:cid/products/:pid", authenticateJWT, updateProductByCart);
 cartsRouter.post("/:cid", authenticateJWT, addProductsToCart);
 
 //Finalize Purchase
-cartsRouter.get("/:cid/purchase", authenticateJWT, finalizePurchase);
+//cartsRouter.get("/:cid/purchase", authenticateJWT, finalizePurchase);
+
+
 
 module.exports = cartsRouter;
