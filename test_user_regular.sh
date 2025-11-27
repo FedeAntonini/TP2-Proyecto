@@ -9,7 +9,7 @@ NC='\033[0m' # No Color
 
 BASE_URL="http://localhost:8081"
 TIMESTAMP=$(date +%s)
-EMAIL="ezequiel_g@test.com"
+EMAIL="test_user_${TIMESTAMP}@test.com"
 PASSWORD="Password123"
 FIRSTNAME="Test"
 LASTNAME="User"

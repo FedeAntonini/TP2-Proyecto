@@ -54,7 +54,7 @@ make_request() {
 # ============================================
 # CONFIGURACIÓN: Usar admin existente o crear uno
 # ============================================
-ADMIN_EMAIL_DEFAULT="gonza_gonzalez28@hotmail.com"
+ADMIN_EMAIL_DEFAULT="ezequiel_g@test.com"
 echo -e "${YELLOW}💡 Usando admin por defecto: $ADMIN_EMAIL_DEFAULT${NC}"
 echo -e "${YELLOW}   (Puedes cambiarlo escribiendo otro email)${NC}"
 read -p "Email del admin (Enter para usar '$ADMIN_EMAIL_DEFAULT'): " ADMIN_EMAIL_INPUT

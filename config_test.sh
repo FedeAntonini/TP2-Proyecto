@@ -5,7 +5,7 @@
 # Puedes modificarlo según tus necesidades o crear variables de entorno.
 
 # Email del admin por defecto
-export ADMIN_EMAIL="gonza_gonzalez28@hotmail.com"
+export ADMIN_EMAIL="ezequiel_g@test.com"
 
 # Contraseña del admin (CAMBIAR por la contraseña real)
 # Si no quieres hardcodear la contraseña, déjala vacía y se pedirá en cada test
